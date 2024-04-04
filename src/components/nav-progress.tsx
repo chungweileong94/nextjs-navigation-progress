@@ -104,13 +104,16 @@ export function NavProgressContainer({ children }: PropsWithChildren) {
   );
 }
 
-export function NavProgressLink(
-  props: Omit<ComponentProps<typeof Link>, "onClick">
-) {
+export function NavProgressLink(props: ComponentProps<typeof Link>) {
   const progress = useProgress();
   const router = useRouter();
 
   const onClick: MouseEventHandler<HTMLAnchorElement> = (e) => {
+    props.onClick?.(e);
+    if (e.defaultPrevented) {
+      return;
+    }
+
     e.preventDefault();
     progress.start();
     startTransition(() => {
