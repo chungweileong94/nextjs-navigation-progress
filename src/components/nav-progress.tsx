@@ -6,8 +6,10 @@ import {
   PropsWithChildren,
   createContext,
   startTransition,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -64,24 +66,25 @@ function useProgressState() {
     }
   }, [progress, state]);
 
-  function start() {
+  const start = useCallback(() => {
     setState("in-progress");
-  }
+  }, []);
 
-  function done() {
+  const done = useCallback(() => {
     setState((prev) =>
       prev === "initial" || prev === "in-progress" ? "completing" : prev
     );
-  }
+  }, []);
 
   return { state, progress, start, done };
 }
 
-const NavProgressContext = createContext<ReturnType<
-  typeof useProgressState
-> | null>(null);
+const NavProgressContext = createContext<{
+  start: () => void;
+  done: () => void;
+} | null>(null);
 
-export function useProgress() {
+function useProgress() {
   const progress = useContext(NavProgressContext);
   if (progress === null) {
     throw new Error("Need to be inside provider");
@@ -91,8 +94,15 @@ export function useProgress() {
 
 export function NavProgressContainer({ children }: PropsWithChildren) {
   const processState = useProgressState();
+  const contextValue = useMemo(
+    () => ({
+      start: processState.start,
+      done: processState.done,
+    }),
+    [processState.done, processState.start]
+  );
   return (
-    <NavProgressContext.Provider value={processState}>
+    <NavProgressContext.Provider value={contextValue}>
       {processState.state !== "initial" && (
         <Progress
           value={processState.progress}
