@@ -24,17 +24,14 @@ function useProgressState() {
   const [state, setState] = useState<"initial" | "in-progress" | "completing">(
     "initial"
   );
-
-  const innerProgressRef = useRef(0);
   const [progress, setProgress] = useState(0);
 
   useInterval(
     () => {
-      let current = innerProgressRef.current;
+      let current = progress;
 
       if (current === 100) {
         setProgress(0);
-        innerProgressRef.current = 0;
       }
 
       let diff;
@@ -48,7 +45,6 @@ function useProgressState() {
 
       diff = Math.min(current + diff, 99);
       setProgress(diff);
-      innerProgressRef.current = diff;
     },
     state === "in-progress" ? 750 : null
   );
@@ -56,10 +52,8 @@ function useProgressState() {
   useEffect(() => {
     if (state === "initial") {
       setProgress(0);
-      innerProgressRef.current = 0;
     } else if (state === "completing") {
       setProgress(100);
-      innerProgressRef.current = 100;
     }
 
     if (progress === 100) {
