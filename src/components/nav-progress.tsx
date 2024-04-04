@@ -30,35 +30,30 @@ function useProgressState() {
 
   useInterval(
     () => {
-      let current = progress;
-      let diff;
-      if (current === 0) {
-        diff = 15;
-      } else if (current < 50) {
-        diff = rand(1, 10);
-      } else {
-        diff = rand(1, 5);
-      }
-
-      const newProgress = Math.min(current + diff, 99);
-      setProgress(newProgress);
+      setProgress((current) => {
+        let diff;
+        if (current === 0) {
+          diff = 15;
+        } else if (current < 50) {
+          diff = rand(1, 10);
+        } else {
+          diff = rand(1, 5);
+        }
+        return Math.min(current + diff, 99);
+      });
     },
     state === "in-progress" ? 750 : null
   );
 
   useEffect(() => {
-    if (state === "complete") {
-      setProgress(100);
-    }
-
-    if (progress === 100) {
-      const timeoutId = setTimeout(() => {
-        setState("initial");
-        setProgress(0);
-      }, 200);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [progress, state]);
+    if (state !== "complete") return;
+    setProgress(100);
+    const timeoutId = setTimeout(() => {
+      setState("initial");
+      setProgress(0);
+    }, 200);
+    return () => clearTimeout(timeoutId);
+  }, [state]);
 
   const start = useCallback(() => {
     setState("in-progress");
